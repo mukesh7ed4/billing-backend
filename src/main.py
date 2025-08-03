@@ -99,18 +99,6 @@ def unauthorized(error):
 def forbidden(error):
     return jsonify({'error': 'Forbidden access'}), 403
 
-# Initialize admin user on startup
-with app.app_context():
-    try:
-        from src.models.user import User
-        admin_user = User.create_admin_user()
-        if admin_user:
-            print("Admin user initialized successfully")
-        else:
-            print("Admin user already exists")
-    except Exception as e:
-        print(f"Error initializing admin user: {e}")
-
 # For production deployment
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

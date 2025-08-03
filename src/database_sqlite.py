@@ -2,7 +2,8 @@ import sqlite3
 import os
 
 # Database path from environment variable with fallback
-DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(os.path.dirname(__file__), 'database', 'app.db'))
+# For Vercel/Render, use /tmp directory for database
+DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join('/tmp', 'app.db'))
 
 def get_db():
     """Get database connection"""
