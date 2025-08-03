@@ -1,6 +1,7 @@
+import sqlite3
 import bcrypt
 from datetime import datetime
-from src.database_postgres import get_db_connection, format_datetime
+from src.database_sqlite import get_db_connection
 
 # Initialize database connection for SQLAlchemy-like usage
 db = None
@@ -32,19 +33,16 @@ class User:
             
             cursor.execute('''
                 INSERT INTO users (username, email, password_hash, role, is_active, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, username, email, password_hash, role, is_active, created_at, updated_at
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (
                 user_data['username'], user_data['email'], password_hash,
                 user_data.get('role', 'shop_user'), True, datetime.now(), datetime.now()
             ))
             
-            user_data = cursor.fetchone()
+            user_id = cursor.lastrowid
             conn.commit()
             
-            if user_data:
-                return cls(*user_data)
-            return None
+            return cls.get_by_id(user_id)
             
         except sqlite3.Error as e:
             conn.rollback()
@@ -59,7 +57,7 @@ class User:
         cursor = conn.cursor()
         
         try:
-            cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+            cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
             row = cursor.fetchone()
             
             if row:
@@ -78,7 +76,7 @@ class User:
         cursor = conn.cursor()
         
         try:
-            cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+            cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
             row = cursor.fetchone()
             
             if row:
@@ -97,7 +95,7 @@ class User:
         cursor = conn.cursor()
         
         try:
-            cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+            cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
             row = cursor.fetchone()
             
             if row:
@@ -192,8 +190,8 @@ class User:
             
             cursor.execute('''
                 UPDATE users 
-                SET password_hash = %s, updated_at = %s
-                WHERE id = %s
+                SET password_hash = ?, updated_at = ?
+                WHERE id = ?
             ''', (password_hash, datetime.now(), self.id))
             
             conn.commit()
@@ -213,8 +211,8 @@ class User:
         try:
             cursor.execute('''
                 UPDATE users 
-                SET username = %s, email = %s, updated_at = %s
-                WHERE id = %s
+                SET username = ?, email = ?, updated_at = ?
+                WHERE id = ?
             ''', (
                 user_data.get('username', self.username),
                 user_data.get('email', self.email),

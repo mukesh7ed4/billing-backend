@@ -22,13 +22,8 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'billing-system-secret-k
 app.config['FLASK_ENV'] = os.environ.get('FLASK_ENV', 'development')
 app.config['FLASK_DEBUG'] = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
 
-# CORS configuration
-cors_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
-if os.environ.get('FLASK_ENV') == 'production':
-    # In production, use the FRONTEND_URL environment variable
-    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost')
-    cors_origins = [frontend_url] + cors_origins
-
+# CORS configuration for production
+cors_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://localhost:3000,https://your-frontend-domain.vercel.app').split(',')
 CORS(app, supports_credentials=True, origins=cors_origins)
 
 # Initialize database
@@ -116,10 +111,8 @@ with app.app_context():
     except Exception as e:
         print(f"Error initializing admin user: {e}")
 
+# For production deployment
 if __name__ == '__main__':
-    host = os.environ.get('FLASK_HOST', '0.0.0.0')
-    port = int(os.environ.get('FLASK_PORT', 5000))
-    debug = app.config['FLASK_DEBUG']
-    
-    app.run(host=host, port=port, debug=debug)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
 
